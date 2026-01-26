@@ -305,7 +305,6 @@ wso2:
     # Container image configurations
     image:
       # -- Container registry credentials.
-      # Specify image pull secrets for private registries
       imagePullSecrets:
         # Specify image pull secrets for private registries
         secrets: []
