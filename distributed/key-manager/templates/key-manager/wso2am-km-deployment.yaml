@@ -75,7 +75,7 @@ spec:
           {{- end }}
       imagePullSecrets:
         {{- if .Values.wso2.deployment.image.imagePullSecrets.enabled }}
-        - name: {{ template "apim-helm-cp.fullname" . }}-docker-registry-auth
+        - name: {{ template "apim-helm-km.fullname" . }}-docker-registry-auth
         {{- end }}
         {{- if .Values.wso2.deployment.image.imagePullSecrets.secrets }}
         {{- range .Values.wso2.deployment.image.imagePullSecrets.secrets }}
@@ -134,7 +134,14 @@ spec:
           initialDelaySeconds: {{ .Values.wso2.deployment.livenessProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.wso2.deployment.livenessProbe.periodSeconds }}
           failureThreshold: {{ .Values.wso2.deployment.livenessProbe.failureThreshold }}
-        livenessProbe:
+        readinessProbe:
+          httpGet:
+              path: /services/Version
+              port: {{ add 9763 .Values.wso2.apim.portOffset }}
+          initialDelaySeconds: {{ .Values.wso2.deployment.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.wso2.deployment.readinessProbe.periodSeconds }}
+          failureThreshold: {{ .Values.wso2.deployment.readinessProbe.failureThreshold }}
+        readinessProbe:
           httpGet:
               path: /services/Version
               port: {{ add 9763 .Values.wso2.apim.portOffset }}
@@ -228,7 +235,7 @@ spec:
       - name: wso2am-km-conf
         configMap:
           name: {{ template "apim-helm-km.fullname" . }}-conf
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       - name: wso2am-km-entrypoint
         configMap:
           name: {{ template "apim-helm-km.fullname" . }}-conf-entrypoint
@@ -236,7 +243,7 @@ spec:
       - name: wso2am-km-log4j2
         configMap:
           name: {{ template "apim-helm-km.fullname" . }}-conf-log4j2
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       {{- if .Values.wso2.apim.mountStartupScript }}
       - name: wso2am-sh-conf
         configMap:

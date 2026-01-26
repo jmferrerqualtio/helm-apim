@@ -73,7 +73,7 @@ spec:
           {{- end }}
       imagePullSecrets:
         {{- if .Values.wso2.deployment.image.imagePullSecrets.enabled }}
-        - name: {{ template "apim-helm-cp.fullname" . }}-docker-registry-auth
+        - name: {{ template "apim-helm-gw.fullname" . }}-docker-registry-auth
         {{- end }}
         {{- if .Values.wso2.deployment.image.imagePullSecrets.secrets }}
         {{- range .Values.wso2.deployment.image.imagePullSecrets.secrets }}
@@ -248,7 +248,7 @@ spec:
       - name: wso2am-gateway-conf
         configMap:
           name: {{ template "apim-helm-gw.fullname" . }}-conf
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       - name: wso2am-gateway-entrypoint
         configMap:
           name: {{ template "apim-helm-gw.fullname" . }}-conf-entrypoint
@@ -256,7 +256,7 @@ spec:
       - name: wso2am-gateway-log4j2
         configMap:
           name: {{ template "apim-helm-gw.fullname" . }}-conf-log4j2
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       {{- if .Values.wso2.apim.mountStartupScript }}
       - name: wso2am-sh-conf
         configMap:

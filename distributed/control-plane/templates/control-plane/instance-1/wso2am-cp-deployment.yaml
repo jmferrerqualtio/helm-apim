@@ -257,7 +257,7 @@ spec:
       - name: wso2am-control-plane-conf
         configMap:
           name: {{ template "apim-helm-cp.fullname" . }}-conf-1
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       - name: wso2am-control-plane-entrypoint
         configMap:
           name: {{ template "apim-helm-cp.fullname" . }}-conf-entrypoint
@@ -265,7 +265,7 @@ spec:
       - name: wso2am-control-plane-log4j2
         configMap:
           name: {{ template "apim-helm-cp.fullname" . }}-conf-log4j2
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       {{- if .Values.wso2.apim.mountStartupScript }}
       - name: wso2am-sh-conf
         configMap:
@@ -276,15 +276,15 @@ spec:
       - name: wso2am-conf-admin-settings
         configMap:
           name: {{ template "apim-helm-cp.fullname" . }}-conf-admin-settings
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       - name: wso2am-conf-devportal-settings
         configMap:
           name: {{ template "apim-helm-cp.fullname" . }}-conf-devportal-settings
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       - name: wso2am-conf-publisher-settings
         configMap:
           name: {{ template "apim-helm-cp.fullname" . }}-conf-publisher-settings
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       {{- end }}
       {{- if .Values.wso2.apim.secureVaultEnabled }}
       - name: wso2am-control-plane-secret-conf

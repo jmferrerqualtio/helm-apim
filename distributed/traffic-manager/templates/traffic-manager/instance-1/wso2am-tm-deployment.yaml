@@ -73,7 +73,7 @@ spec:
           {{- end }}
       imagePullSecrets:
         {{- if .Values.wso2.deployment.image.imagePullSecrets.enabled }}
-        - name: {{ template "apim-helm-cp.fullname" . }}-docker-registry-auth
+        - name: {{ template "apim-helm-tm.fullname" . }}-docker-registry-auth
         {{- end }}
         {{- if .Values.wso2.deployment.image.imagePullSecrets.secrets }}
         {{- range .Values.wso2.deployment.image.imagePullSecrets.secrets }}
@@ -130,21 +130,21 @@ spec:
             command:
               - /bin/sh
               - -c
-              - timeout 1 bash -c "</dev/tcp/localhost/9443"
+              - timeout 1 bash -c "</dev/tcp/localhost/{{ add 9443 .Values.wso2.apim.portOffset }}"
           initialDelaySeconds: {{ .Values.wso2.deployment.startupProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.wso2.deployment.startupProbe.periodSeconds }}
           failureThreshold: {{ .Values.wso2.deployment.startupProbe.failureThreshold }}
         livenessProbe:
           httpGet:
               path: /services/Version
-              port: 9763
+              port: {{ add 9763 .Values.wso2.apim.portOffset }}
           initialDelaySeconds: {{ .Values.wso2.deployment.livenessProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.wso2.deployment.livenessProbe.periodSeconds }}
           failureThreshold: {{ .Values.wso2.deployment.livenessProbe.failureThreshold }}
         readinessProbe:
           httpGet:
               path: /services/Version
-              port: 9763
+              port: {{ add 9763 .Values.wso2.apim.portOffset }}
           initialDelaySeconds: {{ .Values.wso2.deployment.readinessProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.wso2.deployment.readinessProbe.periodSeconds }}
           failureThreshold: {{ .Values.wso2.deployment.readinessProbe.failureThreshold }}
@@ -177,15 +177,15 @@ spec:
           capabilities:
             drop: ["ALL"]
         ports:
-          - containerPort: 9763
+          - containerPort: {{ add 9763 .Values.wso2.apim.portOffset }}
             protocol: "TCP"
-          - containerPort: 9443
+          - containerPort: {{ add 9443 .Values.wso2.apim.portOffset }}
             protocol: "TCP"
-          - containerPort: 9711
+          - containerPort: {{ add 9711 .Values.wso2.apim.portOffset }}
             protocol: "TCP"
-          - containerPort: 9611
+          - containerPort: {{ add 9611 .Values.wso2.apim.portOffset }}
             protocol: "TCP"
-          - containerPort: 5672
+          - containerPort: {{ add 5672 .Values.wso2.apim.portOffset }}
             protocol: "TCP"
         volumeMounts:
         - name: wso2am-traffic-manager-conf
@@ -241,7 +241,7 @@ spec:
       - name: wso2am-traffic-manager-conf
         configMap:
           name: {{ template "apim-helm-tm.fullname" . }}-conf-1
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       - name: wso2am-traffic-manager-entrypoint
         configMap:
           name: {{ template "apim-helm-tm.fullname" . }}-conf-entrypoint
@@ -249,7 +249,7 @@ spec:
       - name: wso2am-traffic-manager-log4j2
         configMap:
           name: {{ template "apim-helm-tm.fullname" . }}-conf-log4j2
-          defaultMode: 0407
+          defaultMode: {{ .Values.kubernetes.configMaps.scripts.defaultMode }}
       {{- if .Values.wso2.apim.mountStartupScript }}
       - name: wso2am-sh-conf
         configMap:
