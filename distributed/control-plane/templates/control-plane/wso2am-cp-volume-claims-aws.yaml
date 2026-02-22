@@ -48,7 +48,7 @@ spec:
   storageClassName: {{ template "apim-helm-cp.fullname" . }}-sc
 
 ---
-{{ if .Values.wso2.deployment.highAvailability }}
+{{ if gt (int .Values.wso2.deployment.replicas) 1 }}
 
 apiVersion: v1
 kind: PersistentVolumeClaim

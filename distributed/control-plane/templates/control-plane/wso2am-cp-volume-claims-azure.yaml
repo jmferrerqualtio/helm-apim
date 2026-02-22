@@ -48,7 +48,7 @@ spec:
   storageClassName: {{ .Values.azure.persistence.storageClass | default "" }}
 
 ---
-{{ if .Values.wso2.deployment.highAvailability }}
+{{ if gt (int .Values.wso2.deployment.replicas) 1 }}
 
 apiVersion: v1
 kind: PersistentVolumeClaim

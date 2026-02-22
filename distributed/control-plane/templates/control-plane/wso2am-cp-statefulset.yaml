@@ -10,25 +10,26 @@
 # --------------------------------------------------------------------------------------
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: {{ template "apim-helm-cp.fullname" . }}-deployment-1
+  name: {{ template "apim-helm-cp.fullname" . }}
   namespace: {{ .Release.Namespace }}
 spec:
+  serviceName: {{ template "apim-helm-cp.fullname" . }}-headless
   replicas: {{ .Values.wso2.deployment.replicas }}
-  strategy:
-    type: Recreate
+  updateStrategy:
+    type: RollingUpdate
   selector:
     matchLabels:
       deployment: {{ template "apim-helm-cp.fullname" . }}
-      node: {{ template "apim-helm-cp.fullname" . }}-1
+      component: control-plane
   template:
     metadata:
       annotations:
         {{- if .Values.kubernetes.enableAppArmor }}
         container.apparmor.security.beta.kubernetes.io/wso2am-control-plane: runtime/default
         {{- end }}
-        checksum.am.cp.conf: {{ include (print $.Template.BasePath "/control-plane/instance-1/wso2am-cp-conf.yaml") . | sha256sum }}
+        checksum.am.cp.conf: {{ include (print $.Template.BasePath "/control-plane/wso2am-cp-conf.yaml") . | sha256sum }}
         checksum.am.cp.conf.log4j2: {{ include (print $.Template.BasePath "/control-plane/wso2am-cp-conf-log4j2.yaml") . | sha256sum }}
         checksum.am.cp.conf.secret: {{ include (print $.Template.BasePath "/control-plane/wso2am-cp-conf-secret-conf.yaml") . | sha256sum }}
         {{- if .Values.wso2.deployment.pod.annotations }}
@@ -36,7 +37,7 @@ spec:
         {{- end }}
       labels:
         deployment: {{ template "apim-helm-cp.fullname" . }}
-        node: {{ template "apim-helm-cp.fullname" . }}-1
+        component: control-plane
         product: apim
     spec:
       affinity:
@@ -45,10 +46,10 @@ spec:
           - podAffinityTerm:
               labelSelector:
                 matchExpressions:
-                - key: deployment
+                - key: component
                   operator: In
                   values:
-                  - {{ template "apim-helm-cp.fullname" . }}
+                  - control-plane
               topologyKey: "topology.kubernetes.io/zone"
             weight: 100
        {{- if .Values.wso2.apim.secureVaultEnabled }} 
@@ -262,7 +263,7 @@ spec:
       volumes:
       - name: wso2am-control-plane-conf
         configMap:
-          name: {{ template "apim-helm-cp.fullname" . }}-conf-1
+          name: {{ template "apim-helm-cp.fullname" . }}-conf
           defaultMode: 0407
       - name: wso2am-control-plane-entrypoint
         configMap:
@@ -319,14 +320,29 @@ spec:
         secret:
           secretName: {{ .Values.wso2.apim.configurations.security.jksSecretName }}
       {{- end }}
-      {{ if .Values.wso2.deployment.persistence.solrIndexing.enabled }}
+      {{- if not .Values.wso2.deployment.persistence.solrIndexing.enabled }}
+      {{- else if .Values.aws.enabled }}
       - name: wso2am-control-plane-local-carbondb
         persistentVolumeClaim:
           claimName: {{ template "apim-helm-cp.fullname" . }}-local-carbon-database-1
       - name: wso2am-control-plane-solr
         persistentVolumeClaim:
           claimName: {{ template "apim-helm-cp.fullname" . }}-solr-indexed-data-1
-      {{ end }}
+      {{- else if .Values.azure.enabled }}
+      - name: wso2am-control-plane-local-carbondb
+        persistentVolumeClaim:
+          claimName: {{ template "apim-helm-cp.fullname" . }}-local-carbon-database-1
+      - name: wso2am-control-plane-solr
+        persistentVolumeClaim:
+          claimName: {{ template "apim-helm-cp.fullname" . }}-solr-indexed-data-1
+      {{- else if .Values.gcp.enabled }}
+      - name: wso2am-control-plane-local-carbondb
+        persistentVolumeClaim:
+          claimName: {{ template "apim-helm-cp.fullname" . }}-local-carbon-database-1
+      - name: wso2am-control-plane-solr
+        persistentVolumeClaim:
+          claimName: {{ template "apim-helm-cp.fullname" . }}-solr-indexed-data-1
+      {{- end }}
       {{- if .Values.kubernetes.openshift.enabled }}
       - name: wso2am-security-dir
         emptyDir: {}

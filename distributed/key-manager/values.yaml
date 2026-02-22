@@ -265,8 +265,8 @@ wso2:
         serviceUrl: "wso2am-cp-service"
         # -- Event hub service urls
         urls:
-          - "wso2am-cp-1-service"
-          - "wso2am-cp-2-service"
+          - "apim-acp-wso2am-acp-0-service"
+          - "apim-acp-wso2am-acp-1-service"
         # -- Port Offset for APIM deployment
         portOffset: 0
 

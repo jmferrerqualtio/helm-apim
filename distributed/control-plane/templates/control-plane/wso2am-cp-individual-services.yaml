@@ -1,4 +1,3 @@
-{{- if .Values.wso2.deployment.highAvailability}}
 # -------------------------------------------------------------------------------------
 #
 # Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com). All Rights Reserved.
@@ -10,36 +9,38 @@
 #
 # --------------------------------------------------------------------------------------
 
+{{- $ctx := . -}}
+{{- range $i := until (int .Values.wso2.deployment.replicas) }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "apim-helm-cp.fullname" . }}-2-service
-  namespace : {{ .Release.Namespace }}
+  name: {{ template "apim-helm-cp.fullname" $ctx }}-{{ $i }}-service
+  namespace : {{ $ctx.Release.Namespace }}
 spec:
   # label keys and values that must match in order to receive traffic for this service
   selector:
-    deployment: {{ template "apim-helm-cp.fullname" . }}
-    node: {{ template "apim-helm-cp.fullname" . }}-2
+    statefulset.kubernetes.io/pod-name: {{ template "apim-helm-cp.fullname" $ctx }}-{{ $i }}
   ports:
     # ports that this service should serve on
     - name: binary
       protocol: TCP
-      port: {{ add 9611 .Values.wso2.apim.portOffset }}
+      port: {{ add 9611 $ctx.Values.wso2.apim.portOffset }}
     - name: binary-secure
       protocol: TCP
-      port: {{ add 9711 .Values.wso2.apim.portOffset }}
+      port: {{ add 9711 $ctx.Values.wso2.apim.portOffset }}
     - name: jms-tcp
       protocol: TCP
-      port: {{ add 5672 .Values.wso2.apim.portOffset }}
+      port: {{ add 5672 $ctx.Values.wso2.apim.portOffset }}
     - name: servlet-https
       protocol: TCP
-      port: {{ add 9443 .Values.wso2.apim.portOffset }}
-    {{- if .Values.wso2.apim.configurations.jmx.enabled }}
+      port: {{ add 9443 $ctx.Values.wso2.apim.portOffset }}
+    {{- if $ctx.Values.wso2.apim.configurations.jmx.enabled }}
     - name: jmx-registry-port
       protocol: TCP
-      port: {{ .Values.wso2.apim.configurations.jmx.rmiRegistryPort }}
+      port: {{ $ctx.Values.wso2.apim.configurations.jmx.rmiRegistryPort }}
     - name: jmx-server-port
       protocol: TCP
-      port: {{ .Values.wso2.apim.configurations.jmx.rmiServerPort }}
+      port: {{ $ctx.Values.wso2.apim.configurations.jmx.rmiServerPort }}
     {{- end }}
 {{- end }}

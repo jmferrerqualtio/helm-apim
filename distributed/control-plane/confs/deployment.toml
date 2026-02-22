@@ -231,18 +231,20 @@ username = "$ref{super_admin.username}"
 password = "$ref{super_admin.password}"
 service_url = "https://{{ template "apim-helm-cp.fullname" . }}-service:{{ add 9443 .Values.wso2.apim.portOffset }}/services/"
 event_listening_endpoints = ["tcp://localhost:{{ add 5672 .Values.wso2.apim.portOffset }}"]
-{{- if .Values.wso2.deployment.highAvailability }}
-event_duplicate_url = ["tcp://{{ template "apim-helm-cp.fullname" . }}-1-service:{{ add 5672 .Values.wso2.apim.portOffset }}"]
+{{- if gt (int .Values.wso2.deployment.replicas) 1 }}
+event_duplicate_url = [
+  {{- $fullName := include "apim-helm-cp.fullname" . -}}
+  {{- $port := add 5672 .Values.wso2.apim.portOffset -}}
+  {{- range $i := until (int .Values.wso2.deployment.replicas) }}
+    "tcp://{{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:{{ $port }}",
+  {{- end }}
+]
 {{- end }}
 
+{{- range $i := until (int .Values.wso2.deployment.replicas) }}
 [[apim.event_hub.publish.url_group]]
-urls = ["tcp://{{ template "apim-helm-cp.fullname" . }}-1-service:{{ add 9611 .Values.wso2.apim.portOffset }}"]
-auth_urls = ["ssl://{{ template "apim-helm-cp.fullname" . }}-1-service:{{ add 9711 .Values.wso2.apim.portOffset }}"]
-
-{{- if .Values.wso2.deployment.highAvailability }}
-[[apim.event_hub.publish.url_group]]
-urls = ["tcp://{{ template "apim-helm-cp.fullname" . }}-2-service:{{ add 9611 .Values.wso2.apim.portOffset }}"]
-auth_urls = ["ssl://{{ template "apim-helm-cp.fullname" . }}-2-service:{{ add 9711 .Values.wso2.apim.portOffset }}"]
+urls = ["tcp://{{ template "apim-helm-cp.fullname" $ }}-{{ $i }}.{{ template "apim-helm-cp.fullname" $ }}-headless:{{ add 9611 $.Values.wso2.apim.portOffset }}"]
+auth_urls = ["ssl://{{ template "apim-helm-cp.fullname" $ }}-{{ $i }}.{{ template "apim-helm-cp.fullname" $ }}-headless:{{ add 9711 $.Values.wso2.apim.portOffset }}"]
 {{- end }}
 
 [apim.oauth_config]
@@ -367,6 +369,6 @@ enable = {{ .Values.wso2.apim.configurations.organization_based_access_control.e
 organization_name_local_claim = {{ .Values.wso2.apim.configurations.organization_based_access_control.organization_name_local_claim | quote }}
 organization_id_local_claim = {{ .Values.wso2.apim.configurations.organization_based_access_control.organization_id_local_claim | quote }}
 
-{{- if .Values.wso2.apim.configurations.extraConfigs }}
+{{ if .Values.wso2.apim.configurations.extraConfigs }}
 {{ .Values.wso2.apim.configurations.extraConfigs }}
-{{- end }}
+{{ end }}
